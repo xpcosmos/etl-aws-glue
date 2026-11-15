@@ -1,0 +1,42 @@
+{
+  "name" : "job_users",
+  "jobMode" : "VISUAL",
+  "description" : "",
+  "role" : "arn:aws:iam::991324028126:role/service-role/AWSGluePowerUserRole",
+  "executionProperty" : {
+    "maxConcurrentRuns" : 1
+  },
+  "command" : {
+    "name" : "glueetl",
+    "scriptLocation" : "s3://aws-glue-assets-991324028126-us-east-2/scripts/job_users.py",
+    "pythonVersion" : "3"
+  },
+  "defaultArguments" : {
+    "--enable-metrics" : "",
+    "--enable-spark-ui" : "true",
+    "--spark-event-logs-path" : "s3://aws-glue-assets-991324028126-us-east-2/sparkHistoryLogs/",
+    "--enable-job-insights" : "true",
+    "--enable-observability-metrics" : "true",
+    "--conf" : "spark.eventLog.rolling.enabled=true --conf spark.sql.catalog.glue_catalog.glue.skip-name-validation=true",
+    "--enable-glue-datacatalog" : "",
+    "--enable-continuous-cloudwatch-log" : "true",
+    "--job-bookmark-option" : "job-bookmark-disable",
+    "--job-language" : "python",
+    "--TempDir" : "s3://aws-glue-assets-991324028126-us-east-2/temporary/"
+  },
+  "maxRetries" : 0,
+  "allocatedCapacity" : 10,
+  "timeout" : 480,
+  "maxCapacity" : 10.0,
+  "glueVersion" : "6.0",
+  "numberOfWorkers" : 10,
+  "workerType" : "G.1X",
+  "executionClass" : "STANDARD",
+  "codeGenConfigurationNodes" : "{\"node-1794771295954\":{\"CustomCode\":{\"ClassName\":\"AddAllowedBirthdayDisclosure\",\"Code\":\"\\n from awsglue.dynamicframe import DynamicFrame\\n import pyspark.sql.functions as sf\\n \\n df_ = dfc.select(list(dfc.keys())[0]).toDF()\\n df_ = (\\n     df_\\n     .withColumn(\\n        \\\"allowed_birthdate_disclosure\\\",\\n        sf.when(sf.col(\\\"birthdate\\\").isNull(), False).otherwise(True))\\n     )\\n \\n df = DynamicFrame.fromDF(df_, glueContext, \\\"result\\\")\\n\\n return DynamicFrameCollection({\\\"result\\\":df}, glueContext)\",\"Inputs\":[\"node-1794771102618\"],\"Name\":\"Add Allowed Birthday Disclosure\",\"OutputSchemas\":[{\"Columns\":[{\"Name\":\"id\",\"Type\":\"bigint\"},{\"Name\":\"username\",\"Type\":\"string\"},{\"Name\":\"email\",\"Type\":\"string\"},{\"Name\":\"timestamp\",\"Type\":\"string\"},{\"Name\":\"status\",\"Type\":\"string\"},{\"Name\":\"address\",\"Type\":\"string\"},{\"Name\":\"location_id\",\"Type\":\"bigint\"},{\"Name\":\"birthdate\",\"Type\":\"date\"},{\"Name\":\"education\",\"Type\":\"string\"},{\"Name\":\"allowed_birthdate_disclosure\",\"Type\":\"boolean\"}]}]}},\"node-1794771102618\":{\"S3ParquetSource\":{\"AdditionalOptions\":{\"EnableSamplePath\":false,\"SamplePath\":\"s3://bronze-layer-991324028126-us-east-2-an/users/users.parquet\"},\"Exclusions\":[],\"Name\":\"Amazon S3\",\"OutputSchemas\":[{\"Columns\":[{\"Name\":\"id\",\"Type\":\"bigint\"},{\"Name\":\"username\",\"Type\":\"string\"},{\"Name\":\"email\",\"Type\":\"string\"},{\"Name\":\"timestamp\",\"Type\":\"string\"},{\"Name\":\"status\",\"Type\":\"string\"},{\"Name\":\"address\",\"Type\":\"string\"},{\"Name\":\"location_id\",\"Type\":\"bigint\"},{\"Name\":\"birthdate\",\"Type\":\"date\"},{\"Name\":\"education\",\"Type\":\"string\"}]}],\"Paths\":[\"s3://bronze-layer-991324028126-us-east-2-an/users/\"],\"Recurse\":true}}}",
+  "sourceControlDetails" : {
+    "provider" : "GITHUB",
+    "repository" : "etl-aws-glue",
+    "branch" : "dev",
+    "folder" : "src"
+  }
+}

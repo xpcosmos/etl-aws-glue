@@ -1,0 +1,38 @@
+{
+  "name" : "job_transaction",
+  "jobMode" : "VISUAL",
+  "description" : "",
+  "role" : "arn:aws:iam::991324028126:role/service-role/AWSGluePowerUserRole",
+  "executionProperty" : {
+    "maxConcurrentRuns" : 1
+  },
+  "command" : {
+    "name" : "glueetl",
+    "scriptLocation" : "s3://aws-glue-assets-991324028126-us-east-2/scripts/job_transaction.py",
+    "pythonVersion" : "3"
+  },
+  "defaultArguments" : {
+    "--spark-event-logs-path" : "s3://aws-glue-assets-991324028126-us-east-2/sparkHistoryLogs/",
+    "--enable-job-insights" : "true",
+    "--conf" : "spark.sql.catalog.glue_catalog.glue.skip-name-validation=true",
+    "--enable-glue-datacatalog" : "",
+    "--job-bookmark-option" : "job-bookmark-enable",
+    "--job-language" : "python",
+    "--TempDir" : "s3://aws-glue-assets-991324028126-us-east-2/temporary/"
+  },
+  "maxRetries" : 0,
+  "allocatedCapacity" : 10,
+  "timeout" : 480,
+  "maxCapacity" : 10.0,
+  "glueVersion" : "6.0",
+  "numberOfWorkers" : 10,
+  "workerType" : "G.1X",
+  "executionClass" : "STANDARD",
+  "codeGenConfigurationNodes" : "{\"node-1794791738113\":{\"S3JsonSource\":{\"AdditionalOptions\":{\"EnableSamplePath\":true,\"SamplePath\":\"s3://bronze-layer-991324028126-us-east-2-an/transactions-sample/transactions-sample.json\"},\"Exclusions\":[],\"JsonPath\":\"$[*]\",\"Multiline\":true,\"Name\":\"Amazon S3\",\"OutputSchemas\":[{\"Columns\":[{\"Name\":\"timestamp\",\"Type\":\"string\"},{\"Name\":\"id\",\"Type\":\"double\"},{\"Name\":\"buyer\",\"Type\":\"int\"},{\"Name\":\"store\",\"Type\":\"int\"},{\"Name\":\"product\",\"Type\":\"struct<name:string,price:string>\"}]}],\"Paths\":[\"s3://bronze-layer-991324028126-us-east-2-an/transactions-sample/\"],\"Recurse\":true}},\"node-1794799328785\":{\"S3GlueParquetTarget\":{\"AutoDataQuality\":{\"EvaluationContext\":\"EvaluateDataQuality_node1794799278703\",\"IsEnabled\":false},\"Compression\":\"snappy\",\"Inputs\":[\"node-1794798297655\"],\"Name\":\"Amazon S3\",\"NumberTargetPartitions\":\"0\",\"PartitionKeys\":[],\"Path\":\"s3://silver-layer-991324028126-us-east-2-an/transactions/\",\"SchemaChangePolicy\":{\"EnableUpdateCatalog\":false}}},\"node-1794798297655\":{\"ApplyMapping\":{\"Inputs\":[\"node-1794797881206\"],\"Mapping\":[{\"Dropped\":false,\"FromPath\":[\"timestamp\"],\"FromType\":\"string\",\"ToKey\":\"timestamp\",\"ToType\":\"string\"},{\"Dropped\":false,\"FromPath\":[\"id\"],\"FromType\":\"double\",\"ToKey\":\"id\",\"ToType\":\"double\"},{\"Dropped\":false,\"FromPath\":[\"buyer\"],\"FromType\":\"int\",\"ToKey\":\"buyer\",\"ToType\":\"int\"},{\"Dropped\":false,\"FromPath\":[\"store\"],\"FromType\":\"int\",\"ToKey\":\"store\",\"ToType\":\"int\"},{\"Dropped\":false,\"FromPath\":[\"product_name\"],\"FromType\":\"string\",\"ToKey\":\"product_name\",\"ToType\":\"string\"},{\"Dropped\":false,\"FromPath\":[\"product_price\"],\"FromType\":\"string\",\"ToKey\":\"product_price\",\"ToType\":\"decimal\"}],\"Name\":\"Change Schema\"}},\"node-1794796676467\":{\"SparkSQL\":{\"Inputs\":[\"node-1794791738113\"],\"Name\":\"SQL Query\",\"OutputSchemas\":[{\"Columns\":[{\"Name\":\"timestamp\",\"Type\":\"string\"},{\"Name\":\"id\",\"Type\":\"double\"},{\"Name\":\"buyer\",\"Type\":\"int\"},{\"Name\":\"store\",\"Type\":\"int\"},{\"Name\":\"product\",\"Type\":\"struct<name:string,price:string>\"},{\"Name\":\"product_name\",\"Type\":\"string\"},{\"Name\":\"product_price\",\"Type\":\"string\"}]}],\"SqlAliases\":[{\"Alias\":\"myDataSource\",\"From\":\"node-1794791738113\"}],\"SqlQuery\":\"select \\n    *, \\n    replace(product.name, \\\"\\\", \\\"\\\") as product_name, \\n    product.price as product_price from myDataSource\"}},\"node-1794797419611\":{\"SparkSQL\":{\"Inputs\":[\"node-1794797004864\"],\"Name\":\"SQL Query\",\"OutputSchemas\":[{\"Columns\":[{\"Name\":\"timestamp\",\"Type\":\"string\"},{\"Name\":\"id\",\"Type\":\"double\"},{\"Name\":\"buyer\",\"Type\":\"int\"},{\"Name\":\"store\",\"Type\":\"int\"},{\"Name\":\"product_name\",\"Type\":\"string\"},{\"Name\":\"product_price\",\"Type\":\"string\"}]}],\"SqlAliases\":[{\"Alias\":\"myDataSource\",\"From\":\"node-1794797004864\"}],\"SqlQuery\":\"select * from myDataSource\\nwhere NOT (\\n    isnull(product_name) OR  \\n    isnull(product_price) OR \\n    isnull(id)\\n    )\"}},\"node-1794797004864\":{\"DropFields\":{\"Inputs\":[\"node-1794796676467\"],\"Name\":\"Drop Fields\",\"Paths\":[[\"product\",\"name\"],[\"product\",\"price\"],[\"product\"]]}},\"node-1794797881206\":{\"SparkSQL\":{\"Inputs\":[\"node-1794797419611\"],\"Name\":\"SQL Query\",\"OutputSchemas\":[{\"Columns\":[{\"Name\":\"timestamp\",\"Type\":\"string\"},{\"Name\":\"id\",\"Type\":\"double\"},{\"Name\":\"buyer\",\"Type\":\"int\"},{\"Name\":\"store\",\"Type\":\"int\"},{\"Name\":\"product_name\",\"Type\":\"string\"},{\"Name\":\"product_price\",\"Type\":\"string\"}]}],\"SqlAliases\":[{\"Alias\":\"myDataSource\",\"From\":\"node-1794797419611\"}],\"SqlQuery\":\"with RemoveMoneySymbol as (\\nselect *,\\n    trim(\\n        replace(\\n            product_price, \\\"R$\\\", \\\"\\\")\\n        ) as product_price \\nfrom myDataSource\\n)\\nselect * from RemoveMoneySymbol;\"}}}",
+  "sourceControlDetails" : {
+    "provider" : "GITHUB",
+    "repository" : "etl-aws-glue",
+    "branch" : "dev",
+    "folder" : "src"
+  }
+}
